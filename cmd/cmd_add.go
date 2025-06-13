@@ -40,7 +40,9 @@ func AddContext(name, server, token string, scan *string) error {
 		if err != nil {
 			return fmt.Errorf("%s: failed to scan sub-clusters for type %q: %w", op, *scan, err)
 		}
-		if len(scannedContexts) > 0 {
+		if len(scannedContexts) == 0 {
+			fmt.Printf("\033[33m[%s] No sub-clusters found for type %q\033[0m\n", op, *scan)
+		} else {
 			contexts = append(contexts, scannedContexts...)
 		}
 	}

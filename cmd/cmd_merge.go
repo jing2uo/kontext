@@ -102,7 +102,9 @@ func MergeContext(filePath, namePrefix string, scan *string) error {
 				fmt.Printf("\033[31m  ✗ Failed to scan sub-clusters for %s: %v\033[0m\n", cfg.Name, err)
 				continue
 			}
-			if len(scannedContexts) > 0 {
+			if len(scannedContexts) == 0 {
+				fmt.Printf("\033[33m[%s] No sub-clusters found for %s with type %q\033[0m\n", op, cfg.Name, *scan)
+			} else {
 				contexts = append(contexts, scannedContexts...)
 			}
 		}

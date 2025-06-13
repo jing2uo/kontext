@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
 	"kontext/cmd"
+
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -15,6 +16,9 @@ var (
 	path  string
 	scan  string
 )
+
+// Add an empty string to allow omitting the scan parameter
+var validScans = []string{"alauda", ""}
 
 func main() {
 	var rootCmd = &cobra.Command{
@@ -27,7 +31,7 @@ It provides commands to add, list, merge, delete, and clean Kubernetes contexts.
 	var addCmd = &cobra.Command{
 		Use:   "add",
 		Short: "Add a new Kubernetes context",
-		Long: `Adds a new Kubernetes context to the kubectl configuration using the provided name, server host, and authentication token.`,
+		Long:  `Add a new Kubernetes context to the kubectl configuration using the provided name, server host, and authentication token.`,
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				return fmt.Errorf("add command does not accept arguments, received: %v", args)
@@ -40,6 +44,9 @@ It provides commands to add, list, merge, delete, and clean Kubernetes contexts.
 			}
 			if token == "" {
 				return fmt.Errorf("token cannot be empty")
+			}
+			if err := validateScan(scan); err != nil {
+				return fmt.Errorf("invalid scan value: %w", err)
 			}
 			var scanPtr *string
 			if scan != "" {
@@ -55,7 +62,7 @@ It provides commands to add, list, merge, delete, and clean Kubernetes contexts.
 	var listCmd = &cobra.Command{
 		Use:   "list",
 		Short: "List all Kubernetes contexts",
-		Long: `Displays all Kubernetes contexts currently configured in the kubectl configuration file.`,
+		Long:  `Displays all Kubernetes contexts currently configured in the kubectl configuration file.`,
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				return fmt.Errorf("list command does not accept arguments, received: %v", args)
@@ -70,13 +77,16 @@ It provides commands to add, list, merge, delete, and clean Kubernetes contexts.
 	var mergeCmd = &cobra.Command{
 		Use:   "merge",
 		Short: "Merge a kubeconfig file",
-		Long: `Merges a specified kubeconfig YAML file into the existing kubectl configuration.`,
+		Long:  `Merges a specified kubeconfig YAML file into the existing kubectl configuration.`,
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				return fmt.Errorf("merge command does not accept arguments, received: %v", args)
 			}
 			if path == "" {
 				return fmt.Errorf("path to kubeconfig file is required")
+			}
+			if err := validateScan(scan); err != nil {
+				return fmt.Errorf("invalid scan value: %w", err)
 			}
 			var scanPtr *string
 			if scan != "" {
@@ -92,7 +102,7 @@ It provides commands to add, list, merge, delete, and clean Kubernetes contexts.
 	var cleanCmd = &cobra.Command{
 		Use:   "clean",
 		Short: "Clean invalid Kubernetes contexts",
-		Long: `Validates and removes invalid or unreachable contexts from the kubectl configuration.`,
+		Long:  `Validates and removes invalid or unreachable contexts from the kubectl configuration.`,
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				return fmt.Errorf("clean command does not accept arguments, received: %v", args)
@@ -107,7 +117,7 @@ It provides commands to add, list, merge, delete, and clean Kubernetes contexts.
 	var deleteCmd = &cobra.Command{
 		Use:   "delete",
 		Short: "Delete Kubernetes contexts",
-		Long: `Deletes one or more Kubernetes contexts from the kubectl configuration, supporting wildcard name patterns (e.g., name*).`,
+		Long:  `Deletes one or more Kubernetes contexts from the kubectl configuration, supporting wildcard name patterns (e.g., name*).`,
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				return fmt.Errorf("delete command does not accept arguments, received: %v", args)
@@ -131,17 +141,23 @@ It provides commands to add, list, merge, delete, and clean Kubernetes contexts.
 	addCmd.MarkFlagRequired("host")
 	addCmd.MarkFlagRequired("token")
 
+	addCmd.RegisterFlagCompletionFunc("scan", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return validScans, cobra.ShellCompDirectiveNoFileComp
+	})
+
 	mergeCmd.Flags().StringVar(&name, "name", "", "Optional name prefix for the context, cluster, and user")
 	mergeCmd.Flags().StringVar(&path, "path", "", "Path to the kubeconfig file (required)")
 	mergeCmd.Flags().StringVar(&scan, "scan", "", "Cluster type to scan for sub-clusters (e.g., alauda)")
 	mergeCmd.MarkFlagRequired("path")
+	mergeCmd.RegisterFlagCompletionFunc("scan", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return validScans, cobra.ShellCompDirectiveNoFileComp
+	})
 
 	deleteCmd.Flags().StringVar(&name, "name", "", "Name of the context to delete (supports wildcard patterns, required)")
 	deleteCmd.MarkFlagRequired("name")
 
 	rootCmd.AddCommand(addCmd, mergeCmd, deleteCmd, cleanCmd, listCmd)
 
-	// Execute command and handle errors
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -166,4 +182,14 @@ func validateHost(host string) error {
 	}
 	// Add more specific host validation if needed (e.g., URL format)
 	return nil
+}
+
+// validateScan ensures the scan type in validScans
+func validateScan(scan string) error {
+	for _, valid := range validScans {
+		if scan == valid {
+			return nil
+		}
+	}
+	return fmt.Errorf("scan must be one of: %v", validScans)
 }

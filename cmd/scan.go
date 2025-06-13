@@ -57,12 +57,33 @@ func ScanAlauda(name, server, token string) ([]ContextConfig, error) {
 		return nil, fmt.Errorf("%s: failed to create Kubernetes client for %s: %w", op, server, err)
 	}
 
-	// Checking for clusters.platform.tkestack.io resources
+	// Checking if platform.tkestack.io API group exists
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	apiGroupList, err := clientset.Discovery().ServerGroups()
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to discover API groups: %w", op, err)
+	}
+
+	hasPlatformGroup := false
+	for _, group := range apiGroupList.Groups {
+		if group.Name == "platform.tkestack.io" {
+			hasPlatformGroup = true
+			break
+		}
+	}
+
+	if !hasPlatformGroup {
+		fmt.Printf("\033[33m[%s] No platform.tkestack.io API group found\033[0m\n", op)
+		return nil, nil
+	}
+
+	// Checking for clusters resource in platform.tkestack.io/v1
 	apiResources, err := clientset.Discovery().ServerResourcesForGroupVersion("platform.tkestack.io/v1")
 	if err != nil {
-		return nil, fmt.Errorf("%s: failed to discover platform.tkestack.io/v1 resources: %w", op, err)
+		fmt.Printf("\033[33m[%s] Failed to discover platform.tkestack.io/v1 resources: %v\033[0m\n", op, err)
+		return nil, nil
 	}
 
 	hasClusterResource := false
@@ -135,5 +156,4 @@ func ScanAlauda(name, server, token string) ([]ContextConfig, error) {
 	}
 
 	return configs, nil
-
 }

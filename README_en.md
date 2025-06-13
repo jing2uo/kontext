@@ -1,53 +1,69 @@
 # Kontext CLI
 
-Kontext is a command-line tool for efficiently managing Kubernetes contexts. It enables users to add, list, merge, delete, and clean Kubernetes contexts in the kubectl configuration file (typically `~/.kube/config`). Kontext supports sub-cluster scanning (e.g., Alauda cluster types) and wildcard operations, simplifying management in multi-cluster environments.
+[![View on GitHub](https://img.shields.io/badge/GitHub-View%20on%20GitHub-blue?logo=github)](https://github.com/jing2uo/kontext)
+
+Kontext is a command-line tool for efficiently managing Kubernetes contexts. It simplifies operations on `kubectl` configuration files (typically `~/.kube/config`) by enabling users to add, list, merge, delete, and clean Kubernetes contexts. Kontext supports sub-cluster scanning (e.g., Alauda clusters) and wildcard operations, making multi-cluster management seamless.
 
 ## Features
 
-- **Add Contexts**: Quickly add new Kubernetes contexts using a name, server address, and token, with optional sub-cluster scanning.
-- **Merge Configs**: Merge external kubeconfig files into the current configuration, supporting custom name prefixes and sub-cluster scanning.
-- **List Contexts**: Display all current Kubernetes contexts and check for orphaned resources.
-- **Delete Contexts**: Delete contexts by exact name or wildcard pattern, automatically cleaning up orphaned clusters and users.
-- **Clean Contexts**: Validate and remove invalid or unreachable contexts, along with orphaned cluster and user resources.
-- **Backup Management**: Automatically create backups before modifying the configuration (retains up to 5 historical backups in `~/.kube`).
-- **Consistent Output**: Clear command-line output with operation progress, success/failure details, and summaries.
+- **Add Contexts**: Quickly add Kubernetes contexts with name, server address, and token, including sub-cluster scanning.
+- **List Contexts**: Display all current contexts and detect orphaned resources.
+- **Delete Contexts**: Remove contexts by exact name or wildcard pattern, automatically cleaning orphaned clusters and users.
+- **Clean Contexts**: Validate and remove invalid or unreachable contexts, along with orphaned clusters and users.
+- **Merge Configs**: Merge external kubeconfig files into the current configuration, with optional name prefixes and sub-cluster scanning.
+- **Backup Management**: Automatically create backups before modifying configurations (default: retain 5 backups in `~/.kube`).
 
 ## Installation
 
-Kontext is currently a development tool, recommended to be built from source. Follow these steps to install:
-
-1. **Clone the Repository** (assuming hosted on a Git repository):
+1. Download the appropriate binary from the [releases](https://github.com/jing2uo/kontext/releases) page, extract it, and move it to your `$PATH`:
 
    ```bash
-   git clone https://github.com/your-repo/kontext.git
-   cd kontext
-   ```
-
-2. **Build and Install** (requires Go environment):
-
-   ```bash
-   go build -o kontext
    sudo mv kontext /usr/local/bin/
    ```
 
-3. **Verify Installation**:
+2. Verify the installation:
+
    ```bash
    kontext -h
    ```
 
+## Command-Line Completion
+
+To enable command completion (e.g., for Bash):
+
+1. Generate the completion script:
+
+   ```bash
+   kontext completion bash > ~/.kontext-completion.bash
+   ```
+
+2. Add to your `~/.bashrc` or `~/.bash_profile`:
+
+   ```bash
+   source ~/.kontext-completion.bash
+   ```
+
+3. Reload your terminal:
+
+   ```bash
+   source ~/.bashrc
+   ```
+
+For Zsh or other shells, run `kontext completion <shell> -h` for details.
+
 ## Usage Examples
 
-The following examples operate on the `~/.kube/config` file, demonstrating Kontext's core functionality.
+The following examples demonstrate Kontext’s core functionality using the `~/.kube/config` file.
 
 ### 1. Add a Context
 
-Add a context named `myenv` and scan for Alauda sub-clusters:
+Add a context named `myenv` with Alauda sub-cluster scanning:
 
 ```bash
 kontext add --name myenv --host "https://192.168.138.58/kubernetes/global" --token "<your-token>" --scan alauda
 ```
 
-Output:
+**Output**:
 
 ```
 [kubeconfig.AddContext] Adding contexts...
@@ -68,7 +84,7 @@ Merge an external kubeconfig file with sub-cluster scanning:
 kontext merge --path Downloads/asdf.yaml --scan alauda
 ```
 
-Output:
+**Output**:
 
 ```
 [kubeconfig.MergeContext] Merging contexts...
@@ -90,7 +106,7 @@ View all current contexts:
 kontext list
 ```
 
-Output:
+**Output**:
 
 ```
 ===== Active Contexts (4) =====
@@ -123,7 +139,7 @@ Delete contexts starting with `asdf` using a wildcard:
 kontext delete --name "asdf*"
 ```
 
-Output:
+**Output**:
 
 ```
 [kubeconfig.BackupKubeConfig] Created backup: /home/jing2uo/.kube/config.backup-20250613-104013
@@ -148,13 +164,13 @@ kubeconfig.DeleteContext Summary:
 
 ### 5. Clean Invalid Contexts
 
-Validate and clean invalid or unreachable contexts:
+Validate and remove invalid or unreachable contexts:
 
 ```bash
 kontext clean
 ```
 
-Output(The config was manually altered to make this context as invalid."):
+**Output** (assuming a manually invalidated context):
 
 ```
 [kubeconfig.BackupKubeConfig] Created backup: /home/jing2uo/.kube/config.backup-20250613-104034
@@ -172,7 +188,7 @@ kubeconfig.CleanContextCmd Summary:
 ==================================================
 ```
 
-## Command Reference
+## Commands
 
 ### `kontext add`
 
@@ -182,10 +198,10 @@ Add a new Kubernetes context.
 kontext add --name <name> --host <host> --token <token> [--scan <type>]
 ```
 
-- `--name`: Name for the context, cluster, and user (required).
+- `--name`: Context, cluster, and user name (required).
 - `--host`: Kubernetes API server address (required).
 - `--token`: Authentication token (required).
-- `--scan`: Cluster type for sub-cluster scanning (e.g., `alauda`).
+- `--scan`: Sub-cluster scan type (e.g., `alauda`).
 
 ### `kontext merge`
 
@@ -195,9 +211,9 @@ Merge an external kubeconfig file.
 kontext merge --path <path> [--name <prefix>] [--scan <type>]
 ```
 
-- `--path`: Path to the kubeconfig file (required).
-- `--name`: Optional prefix for context names.
-- `--scan`: Cluster type for sub-cluster scanning (e.g., `alauda`).
+- `--path`: Path to kubeconfig file (required).
+- `--name`: Context name prefix (optional).
+- `--scan`: Sub-cluster scan type (e.g., `alauda`).
 
 ### `kontext list`
 
@@ -209,17 +225,17 @@ kontext list
 
 ### `kontext delete`
 
-Delete specified contexts, supporting wildcards.
+Delete contexts, supporting wildcards.
 
 ```
 kontext delete --name <name>
 ```
 
-- `--name`: Context name to delete, supports wildcard patterns (e.g., `name*`) (required).
+- `--name`: Context name to delete, supports wildcards (e.g., `name*`) (required).
 
 ### `kontext clean`
 
-Clean invalid or unreachable contexts and orphaned resources.
+Remove invalid or unreachable contexts and orphaned resources.
 
 ```
 kontext clean
@@ -227,19 +243,26 @@ kontext clean
 
 ## Backup Management
 
-- Backup files are stored as `~/.kube/config.backup-<timestamp>` (e.g., `config.backup-20250613-104034`).
-- Up to 5 recent backups are retained, with older backups automatically deleted.
-- Backups are created only for `delete` and `clean` commands when modifications occur.
+- Backups are stored as `~/.kube/config.backup-<timestamp>` (e.g., `config.backup-20250613-104034`).
+- Retains the 5 most recent backups, automatically deleting older ones.
+- Created only for `delete` and `clean` commands.
 
 ## Dependencies
 
-- Go 1.18 or higher (for building).
+- Go 1.18 or higher (for compilation).
 - Kubernetes client-go library (included in project dependencies).
-- kubectl (for validating context connectivity).
+- `kubectl` (for context validation).
+
+## Recommended Tools
+
+Enhance your experience with:
+
+1. [kubectx](https://github.com/ahmetb/kubectx): Quickly switch kubectl contexts and namespaces.
+2. [fzf](https://github.com/junegunn/fzf): Enable interactive menus for kubectx.
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps:
+Contributions are welcome! Follow these steps:
 
 1. Fork the repository.
 2. Create a feature branch (`git checkout -b feature/xxx`).
@@ -249,4 +272,4 @@ Contributions are welcome! Please follow these steps:
 
 ## License
 
-MIT License (to be confirmed, update based on actual project).
+MIT License.

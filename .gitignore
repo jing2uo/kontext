@@ -1,2 +1,4 @@
 kontext
 kt
+# Added by goreleaser init:
+dist/
