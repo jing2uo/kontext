@@ -237,6 +237,13 @@ kontext clean
 - Kubernetes client-go 库（自动包含在项目依赖中）。
 - kubectl（用于验证上下文是否有效）。
 
+## Tips
+
+搭配以下两个工具使用体验更佳：
+
+1.  kubectx: https://github.com/ahmetb/kubectx   快速切换 kubectl context 和 namespace 
+2.  fzf: https://github.com/junegunn/fzf  让 kubectx 弹出选单
+
 ## 贡献
 
 欢迎提交问题或拉取请求！请遵循以下步骤：
