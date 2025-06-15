@@ -10,11 +10,11 @@ import (
 )
 
 var (
-	name  string
-	host  string
-	token string
-	path  string
-	scan  string
+	name   string
+	server string
+	token  string
+	path   string
+	scan   string
 )
 
 // Add an empty string to allow omitting the scan parameter
@@ -31,7 +31,7 @@ It provides commands to add, list, merge, delete, and clean Kubernetes contexts.
 	var addCmd = &cobra.Command{
 		Use:   "add",
 		Short: "Add a new Kubernetes context",
-		Long:  `Add a new Kubernetes context to the kubectl configuration using the provided name, server host, and authentication token.`,
+		Long:  `Add a new Kubernetes context to the kubectl configuration using the provided name, server address, and authentication token.`,
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				return fmt.Errorf("add command does not accept arguments, received: %v", args)
@@ -39,8 +39,8 @@ It provides commands to add, list, merge, delete, and clean Kubernetes contexts.
 			if err := validateName(name); err != nil {
 				return fmt.Errorf("invalid name: %w", err)
 			}
-			if err := validateHost(host); err != nil {
-				return fmt.Errorf("invalid host: %w", err)
+			if err := validateServer(server); err != nil {
+				return fmt.Errorf("invalid server: %w", err)
 			}
 			if token == "" {
 				return fmt.Errorf("token cannot be empty")
@@ -52,7 +52,7 @@ It provides commands to add, list, merge, delete, and clean Kubernetes contexts.
 			if scan != "" {
 				scanPtr = &scan
 			}
-			if err := cmd.AddContext(name, host, token, scanPtr); err != nil {
+			if err := cmd.AddContext(name, server, token, scanPtr); err != nil {
 				return fmt.Errorf("failed to add context: %w", err)
 			}
 			return nil
@@ -134,11 +134,11 @@ It provides commands to add, list, merge, delete, and clean Kubernetes contexts.
 
 	// Flag definitions
 	addCmd.Flags().StringVar(&name, "name", "", "Name for the context, cluster, and user (required)")
-	addCmd.Flags().StringVar(&host, "host", "", "Kubernetes API server address (required)")
+	addCmd.Flags().StringVar(&server, "server", "", "Kubernetes API server address (required)")
 	addCmd.Flags().StringVar(&token, "token", "", "Kubernetes authentication token (required)")
 	addCmd.Flags().StringVar(&scan, "scan", "", "Cluster type to scan for sub-clusters (e.g., alauda)")
 	addCmd.MarkFlagRequired("name")
-	addCmd.MarkFlagRequired("host")
+	addCmd.MarkFlagRequired("server")
 	addCmd.MarkFlagRequired("token")
 
 	addCmd.RegisterFlagCompletionFunc("scan", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -175,12 +175,11 @@ func validateName(name string) error {
 	return nil
 }
 
-// validateHost ensures the host address is valid
-func validateHost(host string) error {
-	if host == "" {
-		return fmt.Errorf("host address cannot be empty")
+// validateServer ensures the server address is valid
+func validateServer(server string) error {
+	if server == "" {
+		return fmt.Errorf("server address cannot be empty")
 	}
-	// Add more specific host validation if needed (e.g., URL format)
 	return nil
 }
 

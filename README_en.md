@@ -60,7 +60,7 @@ The following examples demonstrate Kontext’s core functionality using the `~/.
 Add a context named `myenv` with Alauda sub-cluster scanning:
 
 ```bash
-kontext add --name myenv --host "https://192.168.138.58/kubernetes/global" --token "<your-token>" --scan alauda
+kontext add --name myenv --server "https://192.168.138.58/kubernetes/global" --token "<your-token>" --scan alauda
 ```
 
 **Output**:
@@ -195,11 +195,11 @@ kubeconfig.CleanContextCmd Summary:
 Add a new Kubernetes context.
 
 ```
-kontext add --name <name> --host <host> --token <token> [--scan <type>]
+kontext add --name <name> --server <server> --token <token> [--scan <type>]
 ```
 
 - `--name`: Context, cluster, and user name (required).
-- `--host`: Kubernetes API server address (required).
+- `--server`: Kubernetes API server address (required).
 - `--token`: Authentication token (required).
 - `--scan`: Sub-cluster scan type (e.g., `alauda`).
 

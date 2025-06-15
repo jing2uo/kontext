@@ -60,7 +60,7 @@ Kontext 是一个高效管理 Kubernetes 上下文的命令行工具，简化对
 添加名为 `myenv` 的上下文，并扫描 Alauda 子集群：
 
 ```bash
-kontext add --name myenv --host "https://192.168.138.58/kubernetes/global" --token "<your-token>" --scan alauda
+kontext add --name myenv --server "https://192.168.138.58/kubernetes/global" --token "<your-token>" --scan alauda
 ```
 
 输出：
@@ -195,11 +195,11 @@ kubeconfig.CleanContextCmd Summary:
 添加新 Kubernetes 上下文。
 
 ```
-kontext add --name <name> --host <host> --token <token> [--scan <type>]
+kontext add --name <name> --server <server> --token <token> [--scan <type>]
 ```
 
 - `--name`：上下文、集群和用户名称（必填）。
-- `--host`：Kubernetes API 服务器地址（必填）。
+- `--server`：Kubernetes API 服务器地址（必填）。
 - `--token`：认证令牌（必填）。
 - `--scan`：子集群扫描类型（如 `alauda`）。
 
