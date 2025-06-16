@@ -111,6 +111,11 @@ func CleanContext(config *api.Config) ([]string, []string, error) {
 
 // SafeWriteConfig writes the kubeconfig to a file atomically using a temporary file.
 func SafeWriteConfig(config *api.Config, path string) error {
+	// Ensure the directory exists
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", dir, err)
+	}
 	// Creating temporary file for atomic write
 	tempFile, err := os.CreateTemp(filepath.Dir(path), "kubeconfig-*.tmp")
 	if err != nil {
